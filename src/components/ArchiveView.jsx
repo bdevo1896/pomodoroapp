@@ -1,5 +1,4 @@
 import {connect} from 'react-redux';
-import {getTaskIndexFromID} from '../util/HelperFunctions';
 
 const ArchiveTask = ({text,date,onClick}) => (
     <div>

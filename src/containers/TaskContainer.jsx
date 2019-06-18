@@ -2,6 +2,7 @@ import TaskListView from '../components/TaskListView';
 import TaskAdder from '../components/TaskAdder';
 import Archive from '../components/ArchiveView';
 import {connect} from 'react-redux';
+import AccomplishmentArchive from '../components/AccomplishmentArchive';
 
 function TaskContainer(props) {
     const {taskList} = props;
@@ -10,6 +11,13 @@ function TaskContainer(props) {
             <TaskAdder />
             <TaskListView />
             <Archive />
+            <AccomplishmentArchive />
+            <style jsx>{`
+                #tasks-container {
+                    overflow-y: scroll;
+                    height: 100%;
+                }
+            `}</style>
         </div>
     )
 }

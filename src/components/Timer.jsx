@@ -58,10 +58,12 @@ class Timer extends PureComponent {
 
     decrementTime() {
         const {timerValue} = this.state;
+        const {completeTask,queue} = this.props;
         this.setState({timerValue: timerValue -1},()=>{
             if(this.state.timerValue <= 0) {
                 this.stopTimer();
                 this.setState({workSessionDone: true});
+                completeTask(queue[0].id);
             }
         });
     }
@@ -152,6 +154,10 @@ const mapState = state => ({
     list: state.taskList.list
 })
 
-const TimerView = connect(mapState)(Timer);
+const mapDispatch = ({taskList: {completeTask}}) => ({
+    completeTask: (id) => completeTask({id: id})
+})
+
+const TimerView = connect(mapState,mapDispatch)(Timer);
 
 export default TimerView;
