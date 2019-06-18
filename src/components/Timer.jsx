@@ -1,7 +1,6 @@
 import {CircleChart} from './CircleChart';
 import {PureComponent} from 'react';
 import {connect} from 'react-redux';
-import {getTaskIndexFromID} from '../util/HelperFunctions';
 
 function TimeView ({currentTime}) {
     let minutes = Math.floor(currentTime/60);
@@ -29,6 +28,14 @@ class Timer extends PureComponent {
         this.resetTimer = this.resetTimer.bind(this);
         this.decrementTime = this.decrementTime.bind(this);
         this.getDifficultyTime = this.getDifficultyTime.bind(this);
+    }
+
+    componentDidMount() {
+        const {queue,list} = this.props;
+
+        if(queue.length > 0 && list.length > 0) {
+            this.setTimer(list[queue[0].id]);
+        }
     }
 
     setTimer(difficulty) {
@@ -123,6 +130,7 @@ class Timer extends PureComponent {
                     </div>
                 </div>
                 <style jsx>{`
+                @media(min-width: 768px) {
                     #timer-container {
                         position: relative;
                         width: 100%;
@@ -143,6 +151,7 @@ class Timer extends PureComponent {
                         top: 50%;
                         transform: translate(-50%,-50%);
                     }
+                }
                 `}</style>
             </div>
         )
