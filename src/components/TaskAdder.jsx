@@ -5,6 +5,7 @@ function TaskAdder(props) {
     const {createTask} = props;
 
     const [taskText,setText] = useState("");
+    const [difficulty,setDifficulty] = useState(1);
 
     return (
         <div id="task-adder">
@@ -15,7 +16,26 @@ function TaskAdder(props) {
                 }}
                 placeholder="Add text here"
             />
-            <button onClick={() => createTask(taskText,1,'no-project')}>Create</button>
+            <select onChange={(event)=>{
+                const {value} = event.target;
+                switch(value) {
+                    case 'normal':
+                        setDifficulty(2);
+                        break;
+                    case 'hard':
+                        setDifficulty(3);
+                        break;
+                    default:
+                        setDifficulty(1);
+                }
+            }}>
+                <option value="easy">Easy</option>
+                <option value="normal">Normal</option>
+                <option value="hard">Hard</option>
+            </select>
+            <button onClick={() => {
+                createTask(taskText,difficulty,'no-project')
+            }}>Create</button>
         </div>
     )
 }

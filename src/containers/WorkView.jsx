@@ -3,7 +3,7 @@ import TaskQueue from '../components/TaskQueue';
 
 const WorkView = () => (
     <div id="work-view-container">
-        <Timer difficulty={1}/>
+        <Timer/>
         <TaskQueue />
         <style jsx>{`
             #work-view-container {

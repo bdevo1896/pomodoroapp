@@ -1,76 +1,127 @@
 import {CircleChart} from './CircleChart';
-import {PureComponent} from 'react';
+import {Component} from 'react';
 import {connect} from 'react-redux';
 
 function TimeView ({currentTime}) {
     let minutes = Math.floor(currentTime/60);
     let seconds = currentTime - (minutes * 60);
-    return <p className="timeView">{`${minutes} : ${seconds < 10 ? '0'+seconds : seconds}`}</p>
+    return <h2 className="timeView">{`${minutes} : ${seconds < 10 ? '0'+seconds : seconds}`}</h2>
+}
+
+const EASY_TIME = 15 * 60;
+const NORMAL_TIME = 25 * 60;
+const HARD_TIME = 50 * 60;
+
+const EASY_BREAK_TIME = 2.5 * 60;
+const NORMAL_BREAK_TIME = 5 * 60;
+const HARD_BREAK_TIME = 15 * 60;
+
+const FATIGUE_BREAK = 30 * 60;
+
+const TIMER_MILLISECONDS = 10;
+
+function getTimeValue(fatigue,difficulty,workSessionDone) {
+    let timeValue = 0;
+    if(fatigue < 4) {
+        if(!workSessionDone) {
+            switch(difficulty) {
+            case 3:
+                timeValue = HARD_TIME;
+                break;
+            case 2:
+                timeValue = NORMAL_TIME;
+                break;
+            default:
+                timeValue = EASY_TIME;
+                break;
+            }
+        }else {
+            switch(difficulty) {
+                case 3:
+                    timeValue = HARD_BREAK_TIME;
+                    break;
+                case 2:
+                    timeValue = NORMAL_BREAK_TIME;
+                    break;
+                default:
+                    timeValue = EASY_BREAK_TIME;
+                    break;
+            }
+        }
+    }else {
+        timeValue = FATIGUE_BREAK;
+    }
+
+    return timeValue;
 }
 
 
-class Timer extends PureComponent {
-    EASY_TIME = 15 * 60;
-    NORMAL_TIME = 25 * 60;
-    HARD_TIME = 50 * 60;
+class Timer extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             timerValue: 0,
+            originalTimerValue: 0,
             timer: null,
             isRunning: false,
-            workSessionDone: false
+            taskDifficulty: 0,
+            workSessionDone: false,
+            fatigue: 0,
+            currentTaskId: ''
         }
-        this.setTimer = this.setTimer.bind(this);
         this.startTimer = this.startTimer.bind(this);
         this.stopTimer = this.stopTimer.bind(this);
         this.resetTimer = this.resetTimer.bind(this);
         this.decrementTime = this.decrementTime.bind(this);
-        this.getDifficultyTime = this.getDifficultyTime.bind(this);
     }
 
     componentDidMount() {
         const {queue,list} = this.props;
 
         if(queue.length > 0 && list.length > 0) {
-            this.setTimer(list[queue[0].id]);
-        }
+            let newDifficulty = nextProps.list[queue[0].id].difficulty;
+            this.setState({taskDifficulty: newDifficulty,currentTaskId: queue[0].id});        }
     }
 
-    setTimer(difficulty) {
-        switch(difficulty) {
-        case 3:
-            this.setState({timerValue: this.HARD_TIME});
-            break;
-        case 2:
-            this.setState({timerValue: this.NORMAL_TIME});
-            break;
-        default:
-            this.setState({timerValue: this.EASY_TIME});
-            break;
-        }
-    }
+    static getDerivedStateFromProps(nextProps, prevState){
+        const {queue,list} = nextProps;
+        const {fatigue,workSessionDone,currentTaskId} = prevState;
 
-    getDifficultyTime(difficulty) {
-        switch(difficulty) {
-            case 3:
-                return this.HARD_TIME;
-            case 2:
-                return this.NORMAL_TIME;
-            default:
-                return this.EASY_TIME;
+        if(queue.length > 0 && Object.values(list).length > 0) {
+            if(nextProps.queue[0].id !== currentTaskId){
+                let newDifficulty = nextProps.list[queue[0].id].difficulty;
+                let timeValue = getTimeValue(fatigue,newDifficulty,workSessionDone);
+                return { timerValue: timeValue,originalTimerValue: timeValue,currentTaskId: (fatigue < 4 && !workSessionDone) ? nextProps.queue[0].id : '',taskDifficulty: newDifficulty};
+            }
         }
+
+        else return { timerValue: 0,originalTimerValue: 0,currentTaskId: '',workSessionDone: false};
     }
 
     decrementTime() {
-        const {timerValue} = this.state;
-        const {completeTask,queue} = this.props;
+        const {timerValue,fatigue,taskDifficulty,workSessionDone,currentTaskId} = this.state;
+        const {completeTask} = this.props;
         this.setState({timerValue: timerValue -1},()=>{
             if(this.state.timerValue <= 0) {
-                this.stopTimer();
-                this.setState({workSessionDone: true});
-                completeTask(queue[0].id);
+                if(!workSessionDone) {
+                    let newFatigue = fatigue;
+                    switch(taskDifficulty) {
+                        case 3:
+                            newFatigue += 2;
+                            break;
+                        case 2:
+                            newFatigue += 1;
+                            break;
+                        default:
+                            newFatigue += 0.5;
+                    }
+                    this.stopTimer();
+                    if(currentTaskId != '') {
+                        completeTask(currentTaskId);
+                    }
+                    this.setState({workSessionDone: true,taskDifficulty: 0,fatigue: newFatigue < 4 ? newFatigue : 0})
+                }
             }
         });
     }
@@ -80,46 +131,42 @@ class Timer extends PureComponent {
         this.setState({timer: null,isRunning: false});
     }
 
-    startTimer() {
-        const {timerValue,timer,workSessionDone} = this.state;
+    startTimer(timerValue) {
+        const {timer} = this.state;
         if(timerValue != 0 && timer == null) {
-            this.setState({timer: setInterval(this.decrementTime,10),isRunning: true})
-        }
-
-        if(workSessionDone == true) {
-            this.setState({workSessionDone: false})
+            this.setState({timer: setInterval(this.decrementTime(),TIMER_MILLISECONDS),isRunning: true})
         }
     }
 
     resetTimer() {
         clearInterval(this.state.timer);
-        this.setState({timer: null,timerValue: 0,isRunning: false});
+        this.setState({timer: null,timerValue: 0,isRunning: false,workSessionDone: false});
     }
 
     render() {
-        const {timerValue,isRunning} = this.state;
+        const {timerValue,originalTimerValue,isRunning,currentTaskId} = this.state;
         const {queue,list} = this.props;
-
-        let difficulty = 1;
-
-        if(queue.length > 0) {
-            difficulty = list[queue[0].id].difficulty;
-        }
 
         return (
             <div id="timer-container">
                 <CircleChart 
-                    percentage={(timerValue /this.getDifficultyTime(difficulty)) * 100}
+                    percentage={(timerValue /originalTimerValue) * 100}
                     sideLength="100%"
                 />
                 <div className="info-display">
+                    {(queue.length > 0 && currentTaskId != '') &&
+                    <div>
+                        <h2>Current Task</h2>
+                        <p>{list[currentTaskId].text}</p>
+                    </div>
+                    }
                     <TimeView currentTime={timerValue} />
                     <div className="button-deck">
-                    {(!isRunning) &&
-                        <button onClick={() => this.setTimer(difficulty)}>Add Time</button>
+                    {(!isRunning && queue.length > 0) &&
+                        <button onClick={() => this.startTimer()}>{(timerValue > 0 && timerValue != originalTimerValue) ? 'Resume':'Start'}</button>
                     }
-                    {(!isRunning) &&
-                        <button onClick={() => this.startTimer()}>{(timerValue > 0 && timerValue != this.EASY_TIME && timerValue != this.getDifficultyTime(difficulty)) ? 'Resume':'Start'}</button>
+                    {queue.length == 0 &&
+                        <p>Add some tasks to the queue!</p>
                     }
                     {(timerValue > 0 && isRunning) &&
                         <button onClick={() => this.stopTimer()}>Pause</button>
