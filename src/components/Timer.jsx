@@ -12,44 +12,20 @@ const EASY_TIME = 15 * 60;
 const NORMAL_TIME = 25 * 60;
 const HARD_TIME = 50 * 60;
 
-const EASY_BREAK_TIME = 2.5 * 60;
-const NORMAL_BREAK_TIME = 5 * 60;
-const HARD_BREAK_TIME = 15 * 60;
+const TIMER_MILLISECONDS = 1;
 
-const FATIGUE_BREAK = 30 * 60;
-
-const TIMER_MILLISECONDS = 10;
-
-function getTimeValue(fatigue,difficulty,workSessionDone) {
+function getTimeValue(difficulty) {
     let timeValue = 0;
-    if(fatigue < 4) {
-        if(!workSessionDone) {
-            switch(difficulty) {
-            case 3:
-                timeValue = HARD_TIME;
-                break;
-            case 2:
-                timeValue = NORMAL_TIME;
-                break;
-            default:
-                timeValue = EASY_TIME;
-                break;
-            }
-        }else {
-            switch(difficulty) {
-                case 3:
-                    timeValue = HARD_BREAK_TIME;
-                    break;
-                case 2:
-                    timeValue = NORMAL_BREAK_TIME;
-                    break;
-                default:
-                    timeValue = EASY_BREAK_TIME;
-                    break;
-            }
-        }
-    }else {
-        timeValue = FATIGUE_BREAK;
+    switch(difficulty) {
+    case 3:
+        timeValue = HARD_TIME;
+        break;
+    case 2:
+        timeValue = NORMAL_TIME;
+        break;
+    default:
+        timeValue = EASY_TIME;
+        break;
     }
 
     return timeValue;
@@ -66,8 +42,6 @@ class Timer extends Component {
             timer: null,
             isRunning: false,
             taskDifficulty: 0,
-            workSessionDone: false,
-            fatigue: 0,
             currentTaskId: ''
         }
         this.startTimer = this.startTimer.bind(this);
@@ -86,43 +60,29 @@ class Timer extends Component {
 
     static getDerivedStateFromProps(nextProps, prevState){
         const {queue,list} = nextProps;
-        const {fatigue,workSessionDone,currentTaskId} = prevState;
+        const {currentTaskId} = prevState;
 
         if(queue.length > 0 && Object.values(list).length > 0) {
             if(nextProps.queue[0].id !== currentTaskId){
                 let newDifficulty = nextProps.list[queue[0].id].difficulty;
-                let timeValue = getTimeValue(fatigue,newDifficulty,workSessionDone);
-                return { timerValue: timeValue,originalTimerValue: timeValue,currentTaskId: (fatigue < 4 && !workSessionDone) ? nextProps.queue[0].id : '',taskDifficulty: newDifficulty};
+                let timeValue = getTimeValue(newDifficulty);
+                return { timerValue: timeValue,originalTimerValue: timeValue,currentTaskId: nextProps.queue[0].id,taskDifficulty: newDifficulty};
             }
         }
-
-        else return { timerValue: 0,originalTimerValue: 0,currentTaskId: '',workSessionDone: false};
+        
+        return null;
     }
 
     decrementTime() {
-        const {timerValue,fatigue,taskDifficulty,workSessionDone,currentTaskId} = this.state;
+        const {timerValue,currentTaskId} = this.state;
         const {completeTask} = this.props;
         this.setState({timerValue: timerValue -1},()=>{
             if(this.state.timerValue <= 0) {
-                if(!workSessionDone) {
-                    let newFatigue = fatigue;
-                    switch(taskDifficulty) {
-                        case 3:
-                            newFatigue += 2;
-                            break;
-                        case 2:
-                            newFatigue += 1;
-                            break;
-                        default:
-                            newFatigue += 0.5;
-                    }
                     this.stopTimer();
                     if(currentTaskId != '') {
                         completeTask(currentTaskId);
                     }
-                    this.setState({workSessionDone: true,taskDifficulty: 0,fatigue: newFatigue < 4 ? newFatigue : 0})
                 }
-            }
         });
     }
 
@@ -134,13 +94,13 @@ class Timer extends Component {
     startTimer(timerValue) {
         const {timer} = this.state;
         if(timerValue != 0 && timer == null) {
-            this.setState({timer: setInterval(this.decrementTime(),TIMER_MILLISECONDS),isRunning: true})
+            this.setState({timer: setInterval(this.decrementTime,TIMER_MILLISECONDS),isRunning: true})
         }
     }
 
     resetTimer() {
         clearInterval(this.state.timer);
-        this.setState({timer: null,timerValue: 0,isRunning: false,workSessionDone: false});
+        this.setState({timer: null,timerValue: 0,isRunning: false});
     }
 
     render() {
