@@ -18,6 +18,16 @@ Simply, the Pomodoro technique is the constant pattern of a dedicated work perio
   - 3 = 50 minutes (usually these are overestimated)
 - Finally, decide on which tasks you want to tackle for the day. If you broke them down well, any of them should be able to be developed in isolation.
 
-You are now ready to use my janky app! :D
+You are now ready to use my janky app! :smile:
 
 ## Getting Started
+First, please make sure you have NPM or Yarn installed (I prefer yarn).
+
+After you open a terminal and cd to the folder run the following commands:
+- yarn install (npm i)
+- yarn build (npm run build)
+- yarn start (npm run start)
+
+These commands will install all of the dependencies, build a production ready Next.js build, and finally start the build at http://localhost:3000
+
+Then you can add the tasks in the top left of the screen and from the task list you can add the tasks to the task queue and watch the magic happen! :heart_eyes:
