@@ -1,4 +1,4 @@
-# My Grand Pomodoro App! :alarm_clock:
+# :alarm_clock: My Grand Pomodoro App! :alarm_clock:
 Using React, Rematch/Redux, and Next.js, this pomodoro app features automated task switching and an archive for completed and deleted tasks with a dynamic timer system that adjusts based off of the difficulty of the current task!
 
 Welcome to my Pomodoro App! Do you know what the Pomodoro Technique is? Do you have a workflow that produces more results? If you said no to both, I'll be happy to tell you more!
