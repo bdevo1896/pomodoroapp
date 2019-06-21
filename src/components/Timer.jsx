@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 function TimeView ({currentTime}) {
     let minutes = Math.floor(currentTime/60);
     let seconds = currentTime - (minutes * 60);
-    return <h2 className="timeView">{`${minutes} : ${seconds < 10 ? '0'+seconds : seconds}`}</h2>
+    return <h2 className="timeView" data-aos="zoom-in" >{`${minutes} : ${seconds < 10 ? '0'+seconds : seconds}`}</h2>
 }
 
 const EASY_TIME = 15 * 60;
