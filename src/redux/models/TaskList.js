@@ -1,5 +1,3 @@
-import {getTaskIndexFromID} from '../../util/HelperFunctions';
-
 function createNewId() {
     let randomNum = Math.floor(Math.random() * Math.pow(10,9));
     return 'TID'+randomNum;

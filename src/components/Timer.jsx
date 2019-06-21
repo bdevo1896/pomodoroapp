@@ -12,7 +12,7 @@ const EASY_TIME = 15 * 60;
 const NORMAL_TIME = 25 * 60;
 const HARD_TIME = 50 * 60;
 
-const TIMER_MILLISECONDS = 1;
+const TIMER_MILLISECONDS = 1000;
 
 function getTimeValue(difficulty) {
     let timeValue = 0;
